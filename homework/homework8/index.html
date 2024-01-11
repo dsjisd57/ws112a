@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通訊錄管理系統</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+
+        #contactList {
+            text-align: left;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+<h1>通訊錄管理系統</h1>
+
+<form id="addContactForm">
+    <label for="name">姓名：</label>
+    <input type="text" id="name" required>
+    <br>
+    <label for="phone">電話：</label>
+    <input type="tel" id="phone" required>
+    <br>
+    <button type="button" onclick="addContact()">新增聯絡人</button>
+</form>
+
+<div id="contactList">
+    <h2>通訊錄</h2>
+    <ul id="contacts"></ul>
+</div>
+
+<script>
+    const socket = new WebSocket('ws://localhost:3000');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchContacts();
+    });
+
+    socket.addEventListener('message', event => {
+        const data = JSON.parse(event.data);
+        updateContactsList(data);
+    });
+
+    function fetchContacts() {
+        socket.send(JSON.stringify({ action: 'fetchContacts' }));
+    }
+
+    function addContact() {
+        const name = document.getElementById('name').value;
+        const phone = document.getElementById('phone').value;
+
+        socket.send(JSON.stringify({
+            action: 'addContact',
+            data: { name, phone }
+        }));
+    }
+
+    function updateContactsList(contacts) {
+        const contactsList = document.getElementById('contacts');
+        contactsList.innerHTML = '';
+
+        contacts.forEach(contact => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${contact.name}: ${contact.phone}`;
+            contactsList.appendChild(listItem);
+        });
+    }
+</script>
+
+</body>
+</html>
+
